@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>モンスト ワンパンライン計算ツール</title>
+    <style>
+        :root {
+            --primary: #2b2d42;
+            --secondary: #8d99ae;
+            --bg: #edf2f4;
+            --accent: #ef233c;
+            --card-bg: #ffffff;
+        }
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background-color: var(--bg);
+            color: var(--primary);
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+        .panel {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h1 {
+            grid-column: 1 / -1;
+            text-align: center;
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+        h2 {
+            font-size: 1.2rem;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 5px;
+            margin-top: 0;
+        }
+        .form-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px dashed #ccc;
+        }
+        .form-group label {
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+        .form-group input, .form-group select {
+            width: 110px;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            text-align: right;
+            font-size: 0.9rem;
+        }
+        .result-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+        .result-table th, .result-table td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: right;
+        }
+        .result-table th {
+            background-color: var(--primary);
+            color: white;
+            text-align: center;
+        }
+        .result-table td.negative {
+            color: var(--accent);
+            font-weight: bold;
+        }
+        .note {
+            font-size: 0.8rem;
+            color: var(--secondary);
+            margin-top: 5px;
+        }
+        .info-box {
+            background: #e8f0fe;
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            margin-top: 5px;
+            margin-bottom: 15px;
+            color: #1a73e8;
+        }
+        .section-title {
+            margin-top: 15px;
+            margin-bottom: 5px;
+            font-size: 1rem;
+            color: var(--primary);
+            font-weight: bold;
+            background: #e2e8f0;
+            padding: 5px 10px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>ワンパンライン計算ツール</h1>
+
+        <div class="panel">
+            <h2>ステータス・倍率入力</h2>
+            
+            <div class="section-title">基本・HP情報</div>
+            <div class="form-group">
+                <label>ボス総HP</label>
+                <input type="number" id="total_hp" value="37620000">
+            </div>
+            <div class="form-group">
+                <label>ボス1HP</label>
+                <input type="number" id="target_hp" value="30000000">
+            </div>
+            <div class="info-box" id="hp_reduction_info">
+                </div>
+
+            <div class="section-title">基礎ステータス</div>
+            <div class="form-group">
+                <label>友情/攻撃力</label>
+                <input type="number" id="base_atk" value="1610000">
+            </div>
+
+            <div class="section-title">共通倍率</div>
+            <div class="form-group">
+                <label>属性倍率</label>
+                <select id="attr_mult">
+                    <option value="0.66">0.66</option>
+                    <option value="1" selected>1</option>
+                    <option value="1.33">1.33</option>
+                    <option value="1.596">1.596</option>
+                    <option value="1.9">1.9</option>
+                    <option value="2.788">2.788</option>
+                    <option value="4.61">4.61</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>直殴り倍率</label>
+                <input type="number" id="direct_mult" value="1" step="0.01">
+            </div>
+            <div class="form-group">
+                <label>キラー</label>
+                <select id="killer_mult">
+                    <option value="1">1</option>
+                    <option value="1.25">1.25</option>
+                    <option value="1.5">1.5</option>
+                    <option value="2.0" selected>2.0</option>
+                    <option value="2.5">2.5</option>
+                    <option value="3.0">3.0</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>超MS</label>
+                <select id="super_ms">
+                    <option value="1" selected>1</option>
+                    <option value="1.25">1.25</option>
+                    <option value="1.5">1.5</option>
+                    <option value="2.0">2.0</option>
+                    <option value="2.5">2.5</option>
+                    <option value="3.0">3.0</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>ゲージ</label>
+                <select id="gauge_mult">
+                    <option value="1" selected>1</option>
+                    <option value="1.02">1.02</option>
+                    <option value="1.2">1.2</option>
+                </select>
+            </div>
+            <div class="form-group"><label>SS倍率</label><input type="number" id="ss_mult" value="1" step="0.01"></div>
+            <div class="form-group"><label>アシスト</label><input type="number" id="assist_mult" value="1" step="0.01"></div>
+            
+            <div class="form-group">
+                <label>紋章(対属)</label>
+                <select id="crest_attr">
+                    <option value="1">1</option>
+                    <option value="1.1">1.1</option>
+                    <option value="1.17">1.17</option>
+                    <option value="1.25" selected>1.25</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>紋章(対将)</label>
+                <select id="crest_general">
+                    <option value="1">1</option>
+                    <option value="1.02">1.02</option>
+                    <option value="1.05">1.05</option>
+                    <option value="1.1" selected>1.1</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>紋章(対兵)</label>
+                <select id="crest_soldier">
+                    <option value="1" selected>1</option>
+                    <option value="1.02">1.02</option>
+                    <option value="1.05">1.05</option>
+                    <option value="1.1">1.1</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>紋章(守護)</label>
+                <select id="crest_guardian">
+                    <option value="1">1</option>
+                    <option value="1.01">1.01</option>
+                    <option value="1.04">1.04</option>
+                    <option value="1.08" selected>1.08</option>
+                </select>
+            </div>
+            <div class="form-group"><label>その他 1</label><input type="number" id="other_mult1" value="1" step="0.01"></div>
+            <div class="form-group"><label>その他 2</label><input type="number" id="other_mult2" value="1" step="0.01"></div>
+            <div class="form-group"><label>その他 3</label><input type="number" id="other_mult3" value="1" step="0.01"></div>
+
+            <div class="section-title">弱点部分</div>
+            <div class="form-group"><label>弱点倍率</label><input type="number" id="weak_mult" value="3" step="0.01"></div>
+            <div class="form-group">
+                <label>弱点キラー</label>
+                <select id="weak_killer">
+                    <option value="1" selected>1</option>
+                    <option value="1.25">1.25</option>
+                    <option value="1.5">1.5</option>
+                    <option value="2.0">2.0</option>
+                    <option value="2.5">2.5</option>
+                    <option value="3.0">3.0</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>紋章(対弱)</label>
+                <select id="crest_weak">
+                    <option value="1">1</option>
+                    <option value="1.02">1.02</option>
+                    <option value="1.05">1.05</option>
+                    <option value="1.1" selected>1.1</option>
+                </select>
+            </div>
+            <div class="form-group"><label>弱点その他 1</label><input type="number" id="weak_other1" value="1" step="0.01"></div>
+            <div class="form-group"><label>弱点その他 2</label><input type="number" id="weak_other2" value="1" step="0.01"></div>
+
+            <div class="section-title">本体部分</div>
+            <div class="form-group">
+                <label>本体触数</label>
+                <select id="body_touch">
+                    <option value="0">0</option>
+                    <option value="1" selected>1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                </select>
+            </div>
+
+        </div>
+
+        <div class="panel">
+            <h2>計算結果</h2>
+            <table class="result-table">
+                <tr><th>項目</th><th>ダメージ量</th></tr>
+                <tr><td>弱点部分</td><td id="res_weak_dmg">0</td></tr>
+                <tr><td>本体部分</td><td id="res_body_dmg">0</td></tr>
+                <tr style="font-weight:bold; background:#e2e8f0;"><td>合算値</td><td id="res_total_dmg">0</td></tr>
+            </table>
+
+            <h2 style="margin-top: 20px;">必要ライン・不足分</h2>
+            <table class="result-table">
+                <thead>
+                    <tr>
+                        <th>将命</th>
+                        <th>想定HP</th>
+                        <th>不足分</th>
+                        <th>必要乗算値</th>
+                        <th>必要攻撃力</th>
+                        <th>必要加撃量</th>
+                    </tr>
+                </thead>
+                <tbody id="hp_table_body">
+                    </tbody>
+            </table>
+            <div class="note">※殴りと組み合わせてワンパンすることもあるので、その辺は念頭におきましょう。<br>※将Lはボス1HPの16%削り、将ELは17%削り(特L+スポット)分を「総HP」から引いて計算しています。</div>
+        </div>
+    </div>
+
+    <script>
+        function getVal(id) {
+            return parseFloat(document.getElementById(id).value) || 0;
+        }
+
+        function calculate() {
+            // 入力値の取得
+            const base_atk = getVal('base_atk');
+            const total_hp = getVal('total_hp');
+            const target_hp = getVal('target_hp'); // ボス1HP
+
+            // --- 将命削り考慮後のワンパン必要HP（総HP） ---
+            // ボス1HPにかかる割合ダメージを算出し、総HPから引く
+            const dmgL = Math.floor(target_hp * 0.16);
+            const dmgEL = Math.floor(target_hp * 0.17);
+            const hpL = total_hp - dmgL;
+            const hpEL = total_hp - dmgEL;
+            
+            document.getElementById('hp_reduction_info').innerHTML = `
+                <b>【将命削り発動後のワンパン必要HP】</b><br>
+                ・将命L (16%): ${hpL.toLocaleString()}<br>
+                ・将命EL (17%): ${hpEL.toLocaleString()}
+            `;
+
+            // 共通倍率
+            const common_mult = getVal('attr_mult') * getVal('direct_mult') * getVal('killer_mult') * getVal('super_ms') * getVal('gauge_mult') * getVal('ss_mult') * getVal('assist_mult') * getVal('crest_attr') * getVal('crest_general') * getVal('crest_soldier') * getVal('crest_guardian') * getVal('other_mult1') * getVal('other_mult2') * getVal('other_mult3');
+
+            // 弱点ダメージ計算
+            const weak_dmg = Math.floor(base_atk * common_mult * getVal('weak_mult') * getVal('weak_killer') * getVal('crest_weak') * getVal('weak_other1') * getVal('weak_other2'));
+            
+            // 本体ダメージ計算
+            const body_dmg = Math.floor(base_atk * common_mult * getVal('body_touch'));
+
+            // 合算
+            const total_dmg = weak_dmg + body_dmg;
+
+            // DOM更新 (カンマ区切り)
+            document.getElementById('res_weak_dmg').innerText = weak_dmg.toLocaleString();
+            document.getElementById('res_body_dmg').innerText = body_dmg.toLocaleString();
+            document.getElementById('res_total_dmg').innerText = total_dmg.toLocaleString();
+
+            // HPテーブルの更新
+            const scenarios = [
+                { name: '将無', reduction: 0 },
+                { name: '将L', reduction: 0.16 },
+                { name: '将EL', reduction: 0.17 }
+            ];
+
+            const tbody = document.getElementById('hp_table_body');
+            tbody.innerHTML = '';
+
+            scenarios.forEach(s => {
+                // ダメージ量はボス1HP(target_hp)を参照して算出
+                const shomei_dmg = Math.floor(target_hp * s.reduction);
+                // ワンパンに必要な残りの総HP
+                const current_hp = total_hp - shomei_dmg;
+                
+                const shortfall = current_hp - total_dmg;
+                const required_mult = current_hp / (total_dmg || 1);
+                const required_atk = base_atk * required_mult;
+                const required_add_atk = required_atk - base_atk;
+
+                const tr = document.createElement('tr');
+                
+                const shortfallText = shortfall > 0 ? `-${Math.floor(shortfall).toLocaleString()}` : `+${Math.floor(Math.abs(shortfall)).toLocaleString()}`;
+                const shortfallClass = shortfall > 0 ? 'negative' : '';
+
+                tr.innerHTML = `
+                    <td style="text-align:center;">${s.name}</td>
+                    <td>${current_hp.toLocaleString()}</td>
+                    <td class="${shortfallClass}">${shortfallText}</td>
+                    <td>${shortfall > 0 ? required_mult.toFixed(9) : '-'}</td>
+                    <td>${shortfall > 0 ? Math.ceil(required_atk).toLocaleString() : '-'}</td>
+                    <td>${shortfall > 0 ? Math.ceil(required_add_atk).toLocaleString() : '-'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // 全ての入力欄とセレクトボックスにイベントリスナーを設定
+        document.querySelectorAll('input, select').forEach(element => {
+            element.addEventListener('input', calculate);
+            element.addEventListener('change', calculate);
+        });
+
+        // 初回ロード時に計算を実行
+        window.onload = calculate;
+    </script>
+</body>
+</html>
