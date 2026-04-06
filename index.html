@@ -207,6 +207,29 @@
             border-left: 4px solid var(--linked-border);
             border-radius: 2px;
         }
+
+        /* 編集可能なラベルのスタイル */
+        .editable-label {
+            cursor: pointer;
+            border-bottom: 1px dashed #ccc;
+            user-select: none;
+            transition: 0.2s;
+            display: inline-block;
+        }
+        .editable-label:hover {
+            color: #1a73e8;
+            border-bottom: 1px dashed #1a73e8;
+        }
+        .editable-label[contenteditable="true"] {
+            cursor: text;
+            background-color: #fff;
+            color: #000;
+            border-radius: 3px;
+            padding: 1px 4px;
+            margin-left: -4px;
+            outline: 2px solid #1a73e8;
+            border-bottom: none;
+        }
         
         .dmg-box-container {
             background: #f8f9fa;
@@ -381,9 +404,18 @@
                 <div class="input-row linked-row"><label>紋章(加勢)</label>
                     <select id="w_crest_guard"><option value="1" selected>1</option><option value="1.01">1.01</option><option value="1.04">1.04</option><option value="1.08">1.08</option></select>
                 </div>
-                <div class="input-row"><label>その他 1</label><input type="text" id="w_other1" value="" placeholder="未入力"></div>
-                <div class="input-row"><label>その他 2</label><input type="text" id="w_other2" value="" placeholder="未入力"></div>
-                <div class="input-row"><label>その他 3</label><input type="text" id="w_other3" value="" placeholder="未入力"></div>
+                <div class="input-row">
+                    <label id="w_other1_label" class="editable-label" title="ダブルクリックで変更">その他 1</label>
+                    <input type="text" id="w_other1" value="" placeholder="未入力">
+                </div>
+                <div class="input-row">
+                    <label id="w_other2_label" class="editable-label" title="ダブルクリックで変更">その他 2</label>
+                    <input type="text" id="w_other2" value="" placeholder="未入力">
+                </div>
+                <div class="input-row">
+                    <label id="w_other3_label" class="editable-label" title="ダブルクリックで変更">その他 3</label>
+                    <input type="text" id="w_other3" value="" placeholder="未入力">
+                </div>
             </div>
 
             <div class="panel">
@@ -421,9 +453,18 @@
                 <div class="input-row linked-row"><label>紋章(加勢)</label>
                     <select id="b_crest_guard"><option value="1" selected>1</option><option value="1.01">1.01</option><option value="1.04">1.04</option><option value="1.08">1.08</option></select>
                 </div>
-                <div class="input-row"><label>その他 1</label><input type="text" id="b_other1" value="" placeholder="未入力"></div>
-                <div class="input-row"><label>その他 2</label><input type="text" id="b_other2" value="" placeholder="未入力"></div>
-                <div class="input-row"><label>その他 3</label><input type="text" id="b_other3" value="" placeholder="未入力"></div>
+                <div class="input-row">
+                    <label id="b_other1_label" class="editable-label" title="ダブルクリックで変更">その他 1</label>
+                    <input type="text" id="b_other1" value="" placeholder="未入力">
+                </div>
+                <div class="input-row">
+                    <label id="b_other2_label" class="editable-label" title="ダブルクリックで変更">その他 2</label>
+                    <input type="text" id="b_other2" value="" placeholder="未入力">
+                </div>
+                <div class="input-row">
+                    <label id="b_other3_label" class="editable-label" title="ダブルクリックで変更">その他 3</label>
+                    <input type="text" id="b_other3" value="" placeholder="未入力">
+                </div>
             </div>
 
             <div class="panel" style="border: 2px solid var(--primary);">
@@ -529,6 +570,30 @@
             });
         });
 
+        // === ダブルクリックでラベルを編集可能にする設定 ===
+        document.querySelectorAll('.editable-label').forEach(label => {
+            label.ondblclick = (e) => {
+                label.contentEditable = true;
+                label.focus();
+                const selection = window.getSelection();
+                const range = document.createRange();
+                range.selectNodeContents(label);
+                selection.removeAllRanges();
+                selection.addRange(range);
+            };
+            label.onblur = () => {
+                label.contentEditable = false;
+                if (!label.innerText.trim()) label.innerText = "その他";
+                saveCurrentTab();
+            };
+            label.onkeypress = (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    label.blur();
+                }
+            };
+        });
+
         // === 弱点・本体の連動設定 ===
         const linkedPairs = [
             ['w_base_atk', 'b_base_atk'], ['w_attr', 'b_attr'], ['w_direct', 'b_direct'],
@@ -557,12 +622,20 @@
             'record_shomei', 'custom_memo'
         ];
 
+        const LABEL_IDS = [
+            'w_other1_label', 'w_other2_label', 'w_other3_label',
+            'b_other1_label', 'b_other2_label', 'b_other3_label'
+        ];
+
         // 全て真っさら（テキスト空欄、倍率1）にするための初期値設定
         const DEFAULT_VALUES = {
             quest_name: '', char_name: '', total_hp: '', target_hp: '',
             w_base_atk: '', w_attr: '1', w_direct: '', w_weak: '', w_killer: '1', w_weak_killer: '1', w_super_ms: '1', w_gauge: '1', w_ss: '', w_assist: '', w_crest_attr: '1', w_crest_weak: '1', w_crest_gen: '1', w_crest_sol: '1', w_crest_guard: '1', w_other1: '', w_other2: '', w_other3: '',
             b_base_atk: '', b_attr: '1', b_direct: '', b_touch: '1', b_killer: '1', b_super_ms: '1', b_gauge: '1', b_ss: '', b_assist: '', b_crest_attr: '1', b_crest_gen: '1', b_crest_sol: '1', b_crest_guard: '1', b_other1: '', b_other2: '', b_other3: '',
-            record_shomei: '将無', custom_memo: ''
+            record_shomei: '将無', custom_memo: '',
+            // ラベルの初期値
+            w_other1_label: 'その他 1', w_other2_label: 'その他 2', w_other3_label: 'その他 3',
+            b_other1_label: 'その他 1', b_other2_label: 'その他 2', b_other3_label: 'その他 3'
         };
 
         window.currentCalcResults = {};
@@ -658,10 +731,19 @@
 
         function saveCurrentTab() {
             const state = { inputs: {}, history: '', attackType: '殴り' };
+            
+            // Input系保存
             INPUT_IDS.forEach(id => {
                 const el = document.getElementById(id);
                 if (el) state.inputs[id] = el.value;
             });
+            
+            // Label系保存
+            LABEL_IDS.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) state.inputs[id] = el.innerText;
+            });
+
             const atkTypeEl = document.querySelector('input[name="attack_type"]:checked');
             if (atkTypeEl) state.attackType = atkTypeEl.value;
             
@@ -676,10 +758,17 @@
             if (saved) {
                 try {
                     const state = JSON.parse(saved);
+                    // Input系読込
                     INPUT_IDS.forEach(id => {
                         const el = document.getElementById(id);
                         if (el && state.inputs[id] !== undefined) el.value = state.inputs[id];
                     });
+                    // Label系読込
+                    LABEL_IDS.forEach(id => {
+                        const el = document.getElementById(id);
+                        if (el && state.inputs[id] !== undefined) el.innerText = state.inputs[id];
+                    });
+
                     const atkTypeEl = document.querySelector(`input[name="attack_type"][value="${state.attackType}"]`);
                     if (atkTypeEl) atkTypeEl.checked = true;
                     
@@ -696,10 +785,17 @@
         function resetCurrentTab(confirmPrompt = true) {
             if (confirmPrompt && !confirm('このタブの入力内容と履歴をすべてリセットしますか？\n（真っさらな未入力状態に戻ります）')) return;
             
+            // Inputリセット
             INPUT_IDS.forEach(id => {
                 const el = document.getElementById(id);
                 if(el) el.value = DEFAULT_VALUES[id] !== undefined ? DEFAULT_VALUES[id] : '';
             });
+            // Labelリセット
+            LABEL_IDS.forEach(id => {
+                const el = document.getElementById(id);
+                if(el) el.innerText = DEFAULT_VALUES[id] !== undefined ? DEFAULT_VALUES[id] : '';
+            });
+
             document.querySelector('input[name="attack_type"][value="殴り"]').checked = true;
             document.getElementById('history_body').innerHTML = '';
             
@@ -820,7 +916,27 @@
             const crestSol = document.getElementById('w_crest_sol').value;
             const crestGuard = document.getElementById('w_crest_guard').value;
             
+            // その他の倍率ラベルと値を取得 (弱点側、本体側両方拾って結合するのもありですが、
+            // ここではメモとして有用な値をそのまま拾う仕様にします。
+            // 弱点側・本体側で名前や値が異なる場合も想定して、値が入力されていれば表示します。
+            
+            let extraMemos = [];
+            ['w_other1', 'w_other2', 'w_other3', 'b_other1', 'b_other2', 'b_other3'].forEach(id => {
+                const val = document.getElementById(id).value;
+                if (val) {
+                    const lbl = document.getElementById(id + '_label').innerText;
+                    // 同じラベル・値が重複して配列に入らないようにする
+                    const str = `${lbl}:${val}`;
+                    if(!extraMemos.includes(str)) extraMemos.push(str);
+                }
+            });
+
             let memoStr = `ｹﾞｰｼﾞ:${gauge} / 超MS:${superMs} / ｱｼｽﾄ:${assist} / 紋章[属${crestAttr} 弱${crestWeak} 将${crestGen} 兵${crestSol} 加勢${crestGuard}]`;
+            
+            if (extraMemos.length > 0) {
+                memoStr += ` / ` + extraMemos.join(' / ');
+            }
+
             if (customMemo) memoStr += ` ※${customMemo}`;
 
             const tr = document.createElement('tr');
